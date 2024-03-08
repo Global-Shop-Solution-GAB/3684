@@ -1,0 +1,162 @@
+Program.Sub.ScreenSU.Start
+gui.Form1..create
+gui.Form1..caption("Prospect Extended Description")
+gui.Form1..size(9600,2790)
+gui.Form1..position(0,0)
+gui.Form1..event(unload,form1_unload)
+gui.Form1..alwaysontop(False)
+gui.Form1..fontname("Arial")
+gui.Form1..fontsize(8)
+gui.Form1..forecolor(0)
+gui.Form1..fontstyle(,,,,)
+gui.Form1..BackColor(-2147483633)
+gui.Form1..controlbox(True)
+gui.Form1..maxbutton(True)
+gui.Form1..minbutton(True)
+gui.Form1..mousepointer(0)
+gui.Form1..moveable(True)
+gui.Form1..sizeable(True)
+gui.Form1..ShowInTaskBar(True)
+gui.Form1..titlebar(True)
+gui.Form1.lblPDesc.create(label,"Description",True,840,255,1,905,345,True,0,Arial,8,-2147483633,0)
+gui.Form1.txtPDesc.create(textbox,"",True,8280,300,0,905,575,True,0,Arial,8,-2147483643,1)
+gui.Form1.txtPDesc.maxLength(60)
+gui.Form1.lblPNum.create(label,"",True,735,255,1,110,600,True,0,Arial,8,-2147483633,0)
+gui.Form1.cmdSave.create(button)
+gui.Form1.cmdSave.caption("&Save")
+gui.Form1.cmdSave.visible(True)
+gui.Form1.cmdSave.size(855,375)
+gui.Form1.cmdSave.zorder(0)
+gui.Form1.cmdSave.position(4000,1700)
+gui.Form1.cmdSave.enabled(True)
+gui.Form1.cmdSave.fontname("Arial")
+gui.Form1.cmdSave.fontsize(8)
+gui.Form1.cmdSave.event(click,cmdsave_click)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Variable.Global.sProspNo.Declare(String)
+Function.Intrinsic.Debug.SetScriptVersion("1.0.118","True")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Function.Intrinsic.Debug.ShowCallerInfo
+Variable.Local.sProsp.Declare(String)
+Variable.Local.sProspDesc.Declare(String)
+Variable.Local.sSelectSQL.Declare(String)
+
+'F.Intrinsic.Debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+
+Function.Intrinsic.Control.If(V.Passed.000002.IsNumeric,"=",True)
+	Variable.Local.sProsp.Set(V.Passed.000002)
+	Function.Intrinsic.String.LPad(V.Local.sProsp,"0",6,V.Global.sProspNo)
+Function.Intrinsic.Control.Else
+	V.Global.sProspNo.Set(V.Passed.000002)
+Function.Intrinsic.Control.EndIf
+
+Gui.Form1.lblPNum.Caption(V.Global.sProspNo)
+
+F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+'Function.ODBC.Connection!conx.OpenConnection("Global_PLA","Master","master")
+
+F.Intrinsic.String.Replace(V.Global.sProspNo,"'","''",V.Global.sProspNo)
+F.Intrinsic.String.Concat("SELECT * FROM GAB_3684_PRSP_EXTDSC WHERE PROSPECT='",V.Global.sProspNo,"'",V.local.sSelectSQL)
+
+F.ODBC.Connection!conx.OpenRecordsetRW("rstProsp",V.Local.sSelectSQL)
+F.Intrinsic.Control.If(V.ODBC.conx!rstProsp.EOF,"=",False)
+	F.Intrinsic.String.UCASE(V.ODBC.conx!rstProsp.FieldValString!EXT_DESCRIPTION,V.Local.sProspDesc)
+	F.Intrinsic.String.UCASE(V.ODBC.conx!rstProsp.FieldValString!PROSPECT,V.Global.sProspNo)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Trim(V.Local.sProspDesc,V.Local.sProspDesc)
+Gui.Form1.txtPDesc.Text(V.Local.sProspDesc)
+Gui.Form1..Show
+Gui.Form1.txtPDesc.SetFocus
+
+
+
+
+
+Program.Sub.Main.End
+
+program.sub.form1_unload.start
+Function.Intrinsic.Control.End
+
+program.sub.form1_unload.end
+
+program.sub.cmdsave_click.start
+Variable.Local.sSQLSelect.Declare(String)
+Variable.Local.sDesc.Declare(String)
+Variable.Local.sDescFull.Declare(String)
+Variable.Local.sLen.Declare(Long)
+Variable.Local.sArray.Declare(String)
+''Variable.Local.i.Declare(Long)
+'Variable.Local.dDateMod.Declare(Date)
+''Variable.Local.sProsp.Declare(String)
+
+'Function.Intrinsic.Control.If(V.Passed.000002.IsNumeric,"=",True)
+'	Variable.Local.sProsp.Set(V.Passed.000002)
+'	Function.Intrinsic.String.LPad(V.Local.sProsp,"0",6,V.Local.sProsp)
+'Function.Intrinsic.Control.Else
+'	Variable.Local.sProsp.Set(V.Passed.000002)
+'Function.Intrinsic.Control.EndIf
+
+'F.Intrinsic.Debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+
+F.Intrinsic.String.UCase(V.Screen.Form1!txtPDesc.Text,V.local.sDesc)
+F.Intrinsic.String.Replace(V.Global.sProspNo,"'","''",V.Global.sProspNo)
+F.Intrinsic.String.Len(V.Local.sDesc,V.Local.sLen)
+
+F.Intrinsic.Control.If(V.Local.sLen,"<",31)
+	F.Intrinsic.String.Trim(V.Local.sDesc,V.Local.sDescFull)
+	V.Passed.000005.Set(V.Local.sDescFull)
+	V.Passed.000006.Set(V.Local.sDescFull)
+F.Intrinsic.Control.Else
+	F.Intrinsic.String.LimitSplit(V.Local.sDesc,30,V.local.sArray)
+	F.Intrinsic.String.UCase(V.Local.sArray(0),V.Local.sDesc)
+	V.Passed.000005.Set(V.Local.sDesc)
+	V.Passed.000006.Set(V.Local.sDesc)
+F.Intrinsic.Control.EndIf
+'
+'Variable.Local.dDateMod.Set(V.Ambient.Date)
+	
+
+F.Intrinsic.String.Concat("SELECT * FROM GAB_3684_PRSP_EXTDSC WHERE PROSPECT='",V.Global.sProspNo,"'",V.Local.sSQLSelect)
+F.ODBC.Connection!conx.OpenRecordsetRW("rstUpdate",V.Local.sSQLSelect)
+
+F.Intrinsic.Control.If(V.Global.sProspNo,<>,"")
+	F.Intrinsic.Control.If(V.ODBC.conx!rstUpdate.EOF,=,False)
+		F.ODBC.conx!rstUpdate.Set!EXT_DESCRIPTION(V.Local.sDesc)
+		F.ODBC.conx!rstUpdate.Set!DATE_MODIFIED(V.ambient.Date)
+		F.ODBC.conx!rstUpdate.Update
+		F.Intrinsic.UI.Msgbox("Extended Description Updated!","Prospect Description")
+	F.Intrinsic.Control.Else
+		F.Intrinsic.Control.If(V.ODBC.conx!rstUpdate.EOF,=,True)
+			F.ODBC.conx!rstUpdate.AddNew
+			F.ODBC.conx!rstUpdate.Set!PROSPECT(V.Global.sProspNo)
+			F.ODBC.conx!rstUpdate.Set!EXT_DESCRIPTION(V.Local.sDesc)
+			F.ODBC.conx!rstUpdate.Set!DATE_MODIFIED(V.ambient.date)
+			F.ODBC.conx!rstUpdate.Update
+			F.Intrinsic.UI.Msgbox("Extended Description Saved!","Prospect Description")
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.EndIf
+F.ODBC.conx!rstUpdate.Close
+
+F.Intrinsic.Control.End
+
+	
+
+program.sub.cmdsave_click.end
+
+Program.Sub.Comments.Start
+${$0$}$GAB_3684_Prosp_ExtDesc$}$RLK$}$4/4/2016
+${$1$}$$}$$}$0$}$29820$}$Script 1 Hook$}$4/4/2016 4:15:49 PM$}$(Program: CRM004; Screen: PPSM001)
+
+Program.Sub.Comments.End
+
