@@ -1,0 +1,62 @@
+Program.Sub.ScreenSU.Start
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+Variable.Local.sProsp.Declare(String)
+Variable.Local.sProspExt.Declare(String)
+Variable.Local.sDesc.Declare(String)
+Variable.Local.sSelect.Declare(String)
+Variable.Local.sUpdate.Declare(String)
+
+'F.Intrinsic.debug.InvokeDebugger
+'F.Intrinsic.Debug.Stop
+
+'Function.Intrinsic.Debug.ShowCallerInfo
+F.Intrinsic.Control.If(V.Passed.MODE,"=",5)
+	Variable.Local.sProsp.Set(V.Passed.COMPANY-NUM)
+	Function.Intrinsic.String.Replace(V.Local.sProsp,"'","''",V.Local.sProsp)
+	Function.Intrinsic.String.Concat("SELECT * FROM GAB_3684_PRSP_EXTDSC WHERE PROSPECT='",V.Local.sProsp,"'",V.Local.sSelect)
+	Function.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+	Function.ODBC.Connection!conx.OpenRecordsetRW("rstSelect",V.Local.sSelect)
+	
+	Function.Intrinsic.Control.If(V.ODBC.conx!rstSelect.EOF,"=",False)
+		Function.Intrinsic.String.UCASE(V.ODBC.conx!rstSelect.FieldValString!EXT_DESCRIPTION,V.Local.sDesc)
+		Function.Intrinsic.String.UCASE(V.ODBC.conx!rstSelect.FieldValString!PROSPECT,V.Local.sProspExt)
+	Function.Intrinsic.Control.EndIf
+
+	Function.Intrinsic.String.Concat("SELECT * FROM GAB_3684_CUBILLTOEXT WHERE CUSTOMER='",V.Local.sProsp,"'",V.Local.sUpdate)
+	Function.ODBC.Connection!conx.OpenRecordsetRW("rstUpdate",V.Local.sUpdate)
+	
+	Function.Intrinsic.Control.If(V.ODBC.conx!rstUpdate.EOF,"=",True)
+	Function.Intrinsic.Control.AndIf(V.Local.sProspExt,"<>","")
+		Function.ODBC.conx!rstUpdate.AddNew
+		Function.ODBC.conx!rstUpdate.Set!CUSTOMER(V.Local.sProsp)
+		Function.ODBC.conx!rstUpdate.Set!NAME(V.Local.sDesc)
+		F.ODBC.conx!rstSelect.Delete
+		Function.ODBC.conx!rstUpdate.Update
+	Function.Intrinsic.Control.EndIf
+	
+	Function.ODBC.conx!rstSelect.Close
+	Function.ODBC.conx!rstUpdate.Close
+	Function.ODBC.Connection!conx.Close
+
+Function.Intrinsic.Control.Else
+	Function.Intrinsic.Control.End
+F.Intrinsic.Control.EndIf
+
+
+
+
+
+Program.Sub.Main.End
+
+Program.Sub.Comments.Start
+${$0$}$GAB_3684_Prosp_To_Cust$}$RLK$}$4/4/2016
+${$1$}$$}$$}$0$}$33417$}$Post-Convert Company$}$4/4/2016 4:19:37 PM$}$(Program: CRM006; Screen: )
+
+Program.Sub.Comments.End
+
